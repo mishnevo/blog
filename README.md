@@ -1,4 +1,3 @@
-# MyBlog — Flask Blog с REST API
 ## Быстрый старт
 
 ```bash
