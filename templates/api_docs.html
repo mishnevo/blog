@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}API Documentation — MyBlog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h1 style="font-family:'Playfair Display',serif;" class="mb-1">
+            <i class="bi bi-braces me-2" style="color:var(--accent);"></i>REST API Documentation
+        </h1>
+        <p class="text-muted mb-4">MyBlog API v1.0 — полный доступ к постам через HTTP</p>
+
+        <!-- Auth -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-key me-2" style="color:var(--accent);"></i>Аутентификация</h5>
+                <p>Все запросы к API требуют передачи API-ключа одним из способов:</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="bg-dark text-light rounded-3 p-3 font-monospace small">
+                            X-API-Key: <span style="color:#e94560;">{{ api_key }}</span>
+                        </div>
+                        <p class="text-muted small mt-1">Заголовок запроса (рекомендуется)</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-dark text-light rounded-3 p-3 font-monospace small">
+                            ?api_key=<span style="color:#e94560;">{{ api_key }}</span>
+                        </div>
+                        <p class="text-muted small mt-1">Параметр строки запроса</p>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3 mb-0 small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Демо-ключ: <code>{{ api_key }}</code> — в продакшне замените на секретный.
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoints -->
+        {% set endpoints = [
+            ('GET', '/api/posts', 'Список постов (с пагинацией и фильтрацией)', 200),
+            ('GET', '/api/posts/&lt;id&gt;', 'Конкретный пост по ID', 200),
+            ('POST', '/api/posts', 'Создание нового поста', 201),
+            ('PUT', '/api/posts/&lt;id&gt;', 'Обновление поста', 200),
+            ('DELETE', '/api/posts/&lt;id&gt;', 'Удаление поста', 200),
+        ] %}
+
+        {% set method_colors = {'GET': 'success', 'POST': 'primary', 'PUT': 'warning', 'DELETE': 'danger'} %}
+
+        <h5 class="fw-bold mb-3">Эндпоинты</h5>
+
+        {% for method, path, desc, code in endpoints %}
+        <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-{{ method_colors[method] }} px-2 py-1" style="font-size:0.8rem;">{{ method }}</span>
+                    <code class="fs-6">{{ path|safe }}</code>
+                    <span class="text-muted small ms-auto">→ {{ code }}</span>
+                </div>
+                <p class="text-muted mb-0 small">{{ desc }}</p>
+
+                {% if method == 'GET' and 'posts' == path.split('/')[-1] %}
+                <details class="mt-3">
+                    <summary class="small fw-semibold" style="cursor:pointer; color:var(--primary);">
+                        Параметры запроса
+                    </summary>
+                    <table class="table table-sm mt-2 small">
+                        <thead><tr><th>Параметр</th><th>Тип</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>page</code></td><td>int</td><td>1</td><td>Номер страницы</td></tr>
+                            <tr><td><code>per_page</code></td><td>int</td><td>5</td><td>Постов на страницу (макс. 50)</td></tr>
+                            <tr><td><code>sort</code></td><td>str</td><td>desc</td><td><code>asc</code> или <code>desc</code></td></tr>
+                            <tr><td><code>q</code></td><td>str</td><td>—</td><td>Поиск по заголовку и содержанию</td></tr>
+                        </tbody>
+                    </table>
+                </details>
+                {% endif %}
+
+                {% if method in ('POST', 'PUT') %}
+                <details class="mt-3">
+                    <summary class="small fw-semibold" style="cursor:pointer; color:var(--primary);">
+                        Тело запроса (JSON)
+                    </summary>
+                    <pre class="bg-dark text-light rounded-3 p-3 small mt-2 mb-0">{
+  "title": "Заголовок поста",
+  "content": "Текст поста"
+}</pre>
+                </details>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Example -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-terminal me-2" style="color:var(--accent);"></i>Примеры запросов</h5>
+                <div class="mb-3">
+                    <p class="fw-semibold small mb-1">GET — получить список постов (страница 2):</p>
+                    <pre class="bg-dark text-light rounded-3 p-3 small mb-0">curl -H "X-API-Key: {{ api_key }}" \
+  "http://127.0.0.1:5000/api/posts?page=2&per_page=3&sort=asc"</pre>
+                </div>
+                <div class="mb-3">
+                    <p class="fw-semibold small mb-1">POST — создать пост:</p>
+                    <pre class="bg-dark text-light rounded-3 p-3 small mb-0">curl -X POST \
+  -H "X-API-Key: {{ api_key }}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Привет!", "content": "Мой первый пост через API."}' \
+  http://127.0.0.1:5000/api/posts</pre>
+                </div>
+                <div class="mb-3">
+                    <p class="fw-semibold small mb-1">DELETE — удалить пост #3:</p>
+                    <pre class="bg-dark text-light rounded-3 p-3 small mb-0">curl -X DELETE \
+  -H "X-API-Key: {{ api_key }}" \
+  http://127.0.0.1:5000/api/posts/3</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error codes -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-exclamation-octagon me-2" style="color:var(--accent);"></i>Коды ошибок</h5>
+                <table class="table table-sm small">
+                    <thead><tr><th>Код</th><th>Описание</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="badge bg-success">200</span></td><td>Успешный запрос</td></tr>
+                        <tr><td><span class="badge bg-primary">201</span></td><td>Ресурс создан</td></tr>
+                        <tr><td><span class="badge bg-secondary">400</span></td><td>Неверный формат запроса (нет JSON)</td></tr>
+                        <tr><td><span class="badge bg-danger">401</span></td><td>Неверный или отсутствующий API-ключ</td></tr>
+                        <tr><td><span class="badge bg-danger">404</span></td><td>Пост не найден</td></tr>
+                        <tr><td><span class="badge bg-warning text-dark">405</span></td><td>Метод не поддерживается</td></tr>
+                        <tr><td><span class="badge bg-warning text-dark">422</span></td><td>Ошибка валидации данных</td></tr>
+                        <tr><td><span class="badge bg-danger">500</span></td><td>Внутренняя ошибка сервера</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

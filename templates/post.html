@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post['title'] }} — MyBlog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-3">
+                    <a href="{{ url_for('index') }}" class="text-muted text-decoration-none small">
+                        <i class="bi bi-arrow-left"></i> Все посты
+                    </a>
+                </div>
+                <h1 style="font-family:'Playfair Display',serif; color:var(--primary);">
+                    {{ post['title'] }}
+                </h1>
+                <p class="text-muted mb-4">
+                    <i class="bi bi-calendar3"></i> {{ post['created'][:16] }}
+                    &nbsp;&nbsp;
+                    <span class="badge" style="background:var(--primary);font-size:0.7rem;">
+                        ID #{{ post['id'] }}
+                    </span>
+                </p>
+                <div style="line-height:1.8; white-space:pre-wrap;">{{ post['content'] }}</div>
+
+                <hr class="my-4">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('edit', id=post['id']) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil me-1"></i> Редактировать
+                    </a>
+                    <button type="button" class="btn btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash me-1"></i> Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Удалить пост?</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">«{{ post['title'] }}» будет удалён безвозвратно.</div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form action="{{ url_for('delete', id=post['id']) }}" method="POST">
+                    <button class="btn btn-sm btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

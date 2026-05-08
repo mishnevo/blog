@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная — MyBlog{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="hero rounded-4 mb-4 px-4">
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <h1>Добро пожаловать в блог</h1>
+            <p class="mb-0">Читайте, создавайте и управляйте постами через REST API.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('create') }}" class="btn btn-accent btn-lg">
+                <i class="bi bi-plus-circle me-1"></i> Написать пост
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<form method="GET" action="{{ url_for('index') }}" class="search-bar mb-4">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control form-control-lg"
+               placeholder="Поиск по заголовку или содержанию…"
+               value="{{ q }}">
+        <button class="btn btn-accent" type="submit">
+            <i class="bi bi-search"></i>
+        </button>
+        {% if q %}
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+{% if q %}
+<p class="text-muted mb-3">
+    Результаты поиска по запросу «<strong>{{ q }}</strong>»
+</p>
+{% endif %}
+
+<!-- Posts list -->
+{% if posts %}
+    {% for post in posts %}
+    <div class="card post-card mb-3">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h5 class="card-title mb-1">
+                        <a href="{{ url_for('post', post_id=post['id']) }}">
+                            {{ post['title'] }}
+                        </a>
+                    </h5>
+                    <p class="date-badge mb-2">
+                        <i class="bi bi-calendar3"></i>
+                        {{ post['created'][:16] }}
+                    </p>
+                    <p class="card-text text-muted">
+                        {{ post['content'][:150] }}{% if post['content']|length > 150 %}…{% endif %}
+                    </p>
+                </div>
+                <div class="ms-3 d-flex flex-column gap-1">
+                    <a href="{{ url_for('post', post_id=post['id']) }}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('edit', id=post['id']) }}"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ post['id'] }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal fade" id="deleteModal{{ post['id'] }}" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Удалить пост?</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    «{{ post['title'] }}» будет удалён безвозвратно.
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form action="{{ url_for('delete', id=post['id']) }}" method="POST">
+                        <button class="btn btn-sm btn-danger">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('index', page=page-1, q=q) }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('index', page=p, q=q) }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('index', page=page+1, q=q) }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <p class="text-center text-muted small">Страница {{ page }} из {{ total_pages }}</p>
+    {% endif %}
+
+{% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x" style="font-size:3rem;"></i>
+        <p class="mt-2">Постов не найдено.</p>
+        <a href="{{ url_for('create') }}" class="btn btn-accent">Создать первый пост</a>
+    </div>
+{% endif %}
+{% endblock %}
